@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { Suspense, useEffect, useState, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useGame } from "@/hooks/useGame";
 import { QuestionCard } from "@/components/game/QuestionCard";
@@ -11,7 +11,7 @@ import { GameOver } from "@/components/game/GameOver";
 import { PROFESSIONS, type ClientQuestion, type Profession } from "@/lib/types";
 import { formatPrizeFull, PRIZE_LADDER } from "@/lib/game/prizeLadder";
 
-export default function GamePage() {
+function GameScreen() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const mode = (searchParams.get("mode") ?? "random") as Profession;
@@ -333,5 +333,26 @@ export default function GamePage() {
         </div>
       </div>
     </main>
+  );
+}
+
+/**
+ * useSearchParams() opts the tree into client-side rendering, so it must sit
+ * under a Suspense boundary for Next to prerender this route at build time.
+ */
+export default function GamePage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="abyss-glow flex items-center justify-center min-h-screen px-5">
+          <div className="flex flex-col items-center gap-3 text-center">
+            <p className="t-caption animate-pulse-soft">Preparing Your Game</p>
+            <p className="t-heading">Loading 15 questions</p>
+          </div>
+        </main>
+      }
+    >
+      <GameScreen />
+    </Suspense>
   );
 }

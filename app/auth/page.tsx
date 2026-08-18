@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
 type Mode = "login" | "signup";
 
-export default function AuthPage() {
+function AuthForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirectTo") ?? "/play";
@@ -146,5 +146,23 @@ export default function AuthPage() {
         </button>
       </div>
     </main>
+  );
+}
+
+/**
+ * useSearchParams() opts the tree into client-side rendering, so it must sit
+ * under a Suspense boundary for Next to prerender this route at build time.
+ */
+export default function AuthPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="abyss-glow min-h-screen flex items-center justify-center px-5">
+          <p className="t-caption animate-pulse-soft">Loading</p>
+        </main>
+      }
+    >
+      <AuthForm />
+    </Suspense>
   );
 }
