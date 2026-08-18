@@ -14,12 +14,12 @@ interface LifelinesProps {
 const LIFELINE_CONFIG: {
   id: Lifeline;
   label: string;
-  emoji: string;
+  glyph: string;
   description: string;
 }[] = [
-  { id: "fifty-fifty", label: "50:50", emoji: "✂️", description: "Remove two wrong answers" },
-  { id: "audience", label: "Audience", emoji: "👥", description: "Poll the audience" },
-  { id: "ai-hint", label: "AI Hint", emoji: "🤖", description: "Get a cryptic clue" },
+  { id: "fifty-fifty", label: "50:50", glyph: "½", description: "Remove two wrong answers" },
+  { id: "audience", label: "Audience", glyph: "◍", description: "Poll the audience" },
+  { id: "ai-hint", label: "AI Hint", glyph: "✳", description: "Get a cryptic clue" },
 ];
 
 export function Lifelines({
@@ -36,26 +36,33 @@ export function Lifelines({
   };
 
   return (
-    <div className="flex gap-3 justify-center flex-wrap">
-      {LIFELINE_CONFIG.map(({ id, label, emoji, description }) => {
+    <div className="flex gap-3">
+      {LIFELINE_CONFIG.map(({ id, label, glyph, description }) => {
         const used = lifelinesUsed.has(id);
+        const isDisabled = used || disabled;
+
         return (
           <button
             key={id}
             onClick={handlers[id]}
-            disabled={used || disabled}
+            disabled={isDisabled}
             title={description}
             className={cn(
-              "flex flex-col items-center gap-1 px-4 py-2 rounded-lg border transition-all text-xs font-display",
-              used
-                ? "border-gray-600 text-gray-500 opacity-40 cursor-not-allowed"
-                : disabled
-                ? "border-gray-600 text-gray-400 cursor-not-allowed opacity-60"
-                : "border-gold-600 text-gold hover:bg-gold-500/10 hover:border-gold-400 cursor-pointer"
+              "flex-1 flex items-center justify-center gap-2.5 px-4 py-3 rounded-[6px] transition-all duration-200",
+              used && "bg-deep text-slate cursor-not-allowed",
+              !used && disabled && "bg-kelp/50 text-slate cursor-not-allowed",
+              !isDisabled && "bg-kelp text-mist hover:bg-kelp-hover"
             )}
           >
-            <span className="text-lg">{emoji}</span>
-            <span>{label}</span>
+            <span
+              className={cn(
+                "text-base leading-none",
+                used ? "text-slate line-through" : "text-bio-to"
+              )}
+            >
+              {glyph}
+            </span>
+            <span className="t-caption text-current">{label}</span>
           </button>
         );
       })}

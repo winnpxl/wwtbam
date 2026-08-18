@@ -27,7 +27,6 @@ export function QuestionCard({
   function getOptionState(
     idx: number
   ): "idle" | "selected" | "correct" | "wrong" | "eliminated" {
-    // 50/50 eliminated
     if (fiftyFiftyOptions && !fiftyFiftyOptions.includes(idx)) {
       return "eliminated";
     }
@@ -41,22 +40,22 @@ export function QuestionCard({
   }
 
   return (
-    <div className="wwtbam-card animate-hotspot-pulse p-6 md:p-8 w-full max-w-2xl mx-auto">
-      {/* Prize indicator */}
-      <p className="text-center text-xs font-display text-gold-400 mb-4 tracking-widest uppercase">
-        Question {currentIndex + 1} of 15 — For{" "}
-        <span className="text-gold font-bold">
+    <div className="surface p-9 w-full animate-fade-in-up">
+      {/* Meta row */}
+      <div className="flex items-center justify-between gap-4 mb-7">
+        <span className="t-caption">Question {currentIndex + 1} of 15</span>
+        <span className="t-stat text-xl">
           {formatPrizeFull(PRIZE_LADDER[currentIndex])}
         </span>
-      </p>
+      </div>
 
-      {/* Question text */}
-      <h2 className="text-center text-white font-semibold text-base md:text-xl leading-snug mb-8 min-h-[60px] flex items-center justify-center">
+      {/* Question */}
+      <h2 className="t-subheading text-platinum mb-8 min-h-[64px] flex items-center">
         {question.text}
       </h2>
 
-      {/* Answer options */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      {/* Options */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {question.options.map((opt, idx) => (
           <AnswerOption
             key={idx}

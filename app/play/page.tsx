@@ -8,36 +8,42 @@ export default function PlayPage() {
   ][];
 
   return (
-    <main className="min-h-screen px-4 py-12">
-      <div className="max-w-3xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-10">
-          <Link href="/" className="text-gray-500 hover:text-gray-300 text-sm font-display mb-4 block">
+    <main className="abyss-glow min-h-screen px-5 py-20">
+      <div className="max-w-[1440px] mx-auto flex flex-col gap-12">
+        {/* ── Header ── */}
+        <div className="flex flex-col items-center gap-5 text-center animate-fade-in-up">
+          <Link href="/" className="btn-ghost">
             ← Back
           </Link>
-          <h1 className="font-display font-black text-3xl md:text-4xl gold-shimmer mb-2">
-            Choose Your Game Mode
-          </h1>
-          <p className="text-gray-400 text-sm">
-            Pick a profession or test your general knowledge
+          <h1 className="t-heading-lg">Choose Your Mode</h1>
+          <p className="t-body max-w-md">
+            Pick a profession to be tested on your field, or take on general
+            knowledge.
           </p>
         </div>
 
-        {/* Mode cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        {/* ── Mode grid ── */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 animate-fade-in-up">
           {professions.map(([slug, info]) => (
             <Link
               key={slug}
               href={`/play/game?mode=${slug}`}
-              className="wwtbam-card p-5 text-center hover:scale-105 transition-all duration-200 group"
+              className="surface-interactive p-9 flex flex-col gap-4 group"
             >
-              <span className="text-4xl block mb-3">{info.emoji}</span>
-              <h2 className="font-display font-bold text-yellow-400 text-sm group-hover:text-yellow-300 transition-colors">
-                {info.label}
-              </h2>
-              <p className="text-gray-500 text-xs mt-1 leading-snug">{info.description}</p>
+              <div className="flex items-start justify-between gap-4">
+                <span className="text-3xl leading-none">{info.emoji}</span>
+                <span className="btn-arrow opacity-0 group-hover:opacity-100 transition-opacity">
+                  ↗
+                </span>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <h2 className="t-label">{info.label}</h2>
+                <p className="t-body-sm">{info.description}</p>
+              </div>
+
               {slug === "random" && (
-                <span className="inline-block mt-2 text-[10px] bg-yellow-500/20 text-yellow-400 border border-yellow-700 px-2 py-0.5 rounded-full font-display">
+                <span className="t-caption bio-bg text-abyss px-2.5 py-1 rounded-[6px] self-start mt-1">
                   Classic
                 </span>
               )}
@@ -45,9 +51,9 @@ export default function PlayPage() {
           ))}
         </div>
 
-        {/* Info */}
-        <p className="text-center text-gray-600 text-xs mt-8 font-display">
-          15 questions · 3 lifelines · prize ladder up to $1,000,000
+        {/* ── Footer note ── */}
+        <p className="t-caption text-center">
+          15 Questions · 3 Lifelines · Up to $1,000,000
         </p>
       </div>
     </main>

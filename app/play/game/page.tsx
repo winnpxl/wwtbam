@@ -8,7 +8,7 @@ import { PrizeLadder } from "@/components/game/PrizeLadder";
 import { Lifelines } from "@/components/game/Lifelines";
 import { AudienceChart } from "@/components/game/AudienceChart";
 import { GameOver } from "@/components/game/GameOver";
-import type { ClientQuestion, Profession } from "@/lib/types";
+import { PROFESSIONS, type ClientQuestion, type Profession } from "@/lib/types";
 import { formatPrizeFull, PRIZE_LADDER } from "@/lib/game/prizeLadder";
 
 export default function GamePage() {
@@ -210,30 +210,26 @@ export default function GamePage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <p className="font-display text-2xl text-yellow-400 animate-pulse">
-            Loading your game...
-          </p>
-          <p className="text-gray-500 text-sm mt-2">Preparing 15 questions</p>
+      <main className="abyss-glow flex items-center justify-center min-h-screen px-5">
+        <div className="flex flex-col items-center gap-3 text-center animate-fade-in-up">
+          <p className="t-caption animate-pulse-soft">Preparing Your Game</p>
+          <p className="t-heading">Loading 15 questions</p>
         </div>
-      </div>
+      </main>
     );
   }
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <p className="text-red-400 mb-4">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-6 py-2 rounded-full border border-yellow-600 text-yellow-400 font-display"
-          >
+      <main className="abyss-glow flex items-center justify-center min-h-screen px-5">
+        <div className="surface p-12 flex flex-col items-center gap-6 text-center max-w-md">
+          <p className="t-caption">Something Went Wrong</p>
+          <p className="t-body">{error}</p>
+          <button onClick={() => window.location.reload()} className="btn-aurora">
             Try Again
           </button>
         </div>
-      </div>
+      </main>
     );
   }
 
@@ -257,89 +253,85 @@ export default function GamePage() {
 
   const isAnswering = state.phase === "revealing" || state.phase === "correct";
 
+  const safeHavenPrize =
+    state.currentIndex <= 4
+      ? 0
+      : state.currentIndex <= 10
+      ? PRIZE_LADDER[4]
+      : PRIZE_LADDER[10];
+
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row gap-6 p-4 md:p-8 max-w-6xl mx-auto w-full">
-      {/* Main game area */}
-      <div className="flex-1 flex flex-col gap-6">
-        {/* Top bar */}
-        <div className="flex items-center justify-between">
-          <button
-            onClick={() => router.push("/play")}
-            className="text-gray-500 hover:text-gray-300 text-sm font-display"
-          >
+    <main className="abyss-glow min-h-screen px-5 py-8 md:py-12">
+      <div className="max-w-6xl mx-auto flex flex-col gap-6">
+        {/* ── Top bar ── */}
+        <div className="flex items-center justify-between gap-4">
+          <button onClick={() => router.push("/play")} className="btn-ghost">
             ← Quit
           </button>
-          <span className="font-display text-xs text-gray-500 uppercase tracking-widest">
-            {mode === "random" ? "General Knowledge" : mode.charAt(0).toUpperCase() + mode.slice(1)}
+
+          <span className="t-caption">
+            {PROFESSIONS[mode]?.label ?? mode}
           </span>
+
           <button
             onClick={walkAway}
             disabled={state.currentIndex === 0}
-            className="text-xs font-display text-orange-400 hover:text-orange-300 disabled:opacity-30 disabled:cursor-not-allowed"
+            className="btn-ghost"
           >
-            Walk Away 🚶
+            Walk Away
           </button>
         </div>
 
-        {/* Lifelines */}
-        <Lifelines
-          lifelinesUsed={state.lifelinesUsed}
-          disabled={isAnswering}
-          onFiftyFifty={handleFiftyFifty}
-          onAudience={handleAudience}
-          onAiHint={handleAiHint}
-        />
+        {/* ── Body: main + ladder ── */}
+        <div className="flex flex-col lg:flex-row gap-5 items-start">
+          <div className="flex-1 w-full flex flex-col gap-5">
+            <Lifelines
+              lifelinesUsed={state.lifelinesUsed}
+              disabled={isAnswering}
+              onFiftyFifty={handleFiftyFifty}
+              onAudience={handleAudience}
+              onAiHint={handleAiHint}
+            />
 
-        {/* AI Hint */}
-        {state.aiHint && (
-          <div className="wwtbam-card p-4 text-center animate-fade-in-up">
-            <p className="text-xs font-display text-yellow-400 uppercase tracking-widest mb-1">
-              🤖 AI Hint
-            </p>
-            <p className="text-gray-200 italic text-sm">{state.aiHint}</p>
+            {state.aiHint && (
+              <div className="surface-recessed p-7 animate-fade-in-up">
+                <p className="t-caption mb-2.5">AI Hint</p>
+                <p className="t-body text-mist">{state.aiHint}</p>
+              </div>
+            )}
+
+            {state.audienceResults && (
+              <AudienceChart results={state.audienceResults} />
+            )}
+
+            <QuestionCard
+              question={currentQuestion}
+              currentIndex={state.currentIndex}
+              selectedOption={state.selectedOption}
+              revealedCorrect={revealedCorrect}
+              fiftyFiftyOptions={state.fiftyFiftyOptions}
+              disabled={isAnswering}
+              onSelect={handleSelect}
+            />
+
+            {state.currentIndex > 0 && (
+              <p className="t-caption text-center">
+                Safe Haven ·{" "}
+                <span className="text-phosphor">
+                  {formatPrizeFull(safeHavenPrize)}
+                </span>
+              </p>
+            )}
           </div>
-        )}
 
-        {/* Audience chart */}
-        {state.audienceResults && (
-          <AudienceChart results={state.audienceResults} />
-        )}
-
-        {/* Question card */}
-        <QuestionCard
-          question={currentQuestion}
-          currentIndex={state.currentIndex}
-          selectedOption={state.selectedOption}
-          revealedCorrect={revealedCorrect}
-          fiftyFiftyOptions={state.fiftyFiftyOptions}
-          disabled={isAnswering}
-          onSelect={handleSelect}
-        />
-
-        {/* Safe haven notice */}
-        {state.currentIndex > 0 && (
-          <p className="text-center text-xs text-gray-600 font-display">
-            Safe haven:{" "}
-            <span className="text-green-500">
-              {formatPrizeFull(
-                state.currentIndex <= 4
-                  ? 0
-                  : state.currentIndex <= 10
-                  ? PRIZE_LADDER[4]
-                  : PRIZE_LADDER[10]
-              )}
-            </span>
-          </p>
-        )}
+          <aside className="w-full lg:w-auto">
+            <PrizeLadder
+              currentIndex={state.currentIndex}
+              prizeReached={state.prizeReached}
+            />
+          </aside>
+        </div>
       </div>
-
-      {/* Prize ladder (sidebar on desktop, bottom on mobile) */}
-      <aside className="lg:block">
-        <PrizeLadder
-          currentIndex={state.currentIndex}
-          prizeReached={state.prizeReached}
-        />
-      </aside>
-    </div>
+    </main>
   );
 }
