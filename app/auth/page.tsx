@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { cn } from "@/lib/utils";
 
 type Mode = "login" | "signup";
 
@@ -15,7 +16,10 @@ export default function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<{ type: "error" | "success"; text: string } | null>(null);
+  const [message, setMessage] = useState<{
+    type: "error" | "success";
+    text: string;
+  } | null>(null);
 
   const supabase = createClient();
 
@@ -30,7 +34,7 @@ export default function AuthPage() {
         if (error) throw error;
         setMessage({
           type: "success",
-          text: "Check your email to confirm your account!",
+          text: "Check your email to confirm your account.",
         });
       } else {
         const { error } = await supabase.auth.signInWithPassword({
@@ -52,89 +56,94 @@ export default function AuthPage() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center px-4">
-      <div className="wwtbam-card p-8 w-full max-w-md animate-fade-in-up">
-        {/* Title */}
-        <h1 className="font-display font-black text-2xl text-center gold-shimmer mb-1">
-          MILLIONAIRE?
-        </h1>
-        <p className="text-center text-gray-500 text-xs mb-6 font-display">
-          {mode === "login" ? "Welcome back!" : "Create your account"}
-        </p>
-
-        {/* Mode toggle */}
-        <div className="flex rounded-full border border-yellow-900 overflow-hidden mb-6">
-          {(["login", "signup"] as Mode[]).map((m) => (
-            <button
-              key={m}
-              onClick={() => setMode(m)}
-              className={`flex-1 py-2 text-sm font-display transition-colors ${
-                mode === m
-                  ? "bg-yellow-500 text-blue-950 font-bold"
-                  : "text-gray-400 hover:text-gray-200"
-              }`}
-            >
-              {m === "login" ? "Sign In" : "Sign Up"}
-            </button>
-          ))}
+    <main className="abyss-glow min-h-screen flex items-center justify-center px-5 py-20">
+      <div className="w-full max-w-md flex flex-col gap-9 animate-fade-in-up">
+        {/* Header */}
+        <div className="flex flex-col items-center gap-3 text-center">
+          <p className="t-caption">Who Wants to Be a</p>
+          <h1 className="t-heading aurora-text aurora-drift">MILLIONAIRE</h1>
+          <p className="t-body-sm">
+            {mode === "login"
+              ? "Sign in to save your scores."
+              : "Create an account to track your progress."}
+          </p>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <div>
-            <label className="block text-xs font-display text-gray-400 mb-1">
-              Email
-            </label>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-blue-950/50 border border-blue-800 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:border-yellow-500 transition-colors"
-              placeholder="you@example.com"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-display text-gray-400 mb-1">
-              Password
-            </label>
-            <input
-              type="password"
-              required
-              minLength={6}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-blue-950/50 border border-blue-800 rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:border-yellow-500 transition-colors"
-              placeholder="••••••••"
-            />
+        {/* Card */}
+        <div className="surface p-9 flex flex-col gap-7">
+          {/* Tabs */}
+          <div className="flex gap-1 p-1 rounded-[6px] bg-deep">
+            {(["login", "signup"] as Mode[]).map((m) => (
+              <button
+                key={m}
+                onClick={() => setMode(m)}
+                className={cn(
+                  "flex-1 py-2.5 rounded-[6px] t-caption transition-all duration-200",
+                  mode === m
+                    ? "aurora-bg text-abyss"
+                    : "text-silver hover:text-mist"
+                )}
+              >
+                {m === "login" ? "Sign In" : "Sign Up"}
+              </button>
+            ))}
           </div>
 
-          {message && (
-            <p
-              className={`text-sm text-center py-2 rounded-lg px-4 ${
-                message.type === "error"
-                  ? "bg-red-900/30 text-red-400 border border-red-800"
-                  : "bg-green-900/30 text-green-400 border border-green-800"
-              }`}
-            >
-              {message.text}
-            </p>
-          )}
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+            <div className="flex flex-col gap-2">
+              <label className="t-caption">Email</label>
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                className="w-full bg-deep rounded-[6px] px-4 py-3 text-sm text-mist placeholder:text-slate outline-none transition-shadow focus:ring-1 focus:ring-bio-from"
+              />
+            </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="py-3 rounded-full bg-yellow-500 text-blue-950 font-display font-bold hover:bg-yellow-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? "Loading..." : mode === "login" ? "Sign In" : "Create Account"}
-          </button>
-        </form>
+            <div className="flex flex-col gap-2">
+              <label className="t-caption">Password</label>
+              <input
+                type="password"
+                required
+                minLength={6}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full bg-deep rounded-[6px] px-4 py-3 text-sm text-mist placeholder:text-slate outline-none transition-shadow focus:ring-1 focus:ring-bio-from"
+              />
+            </div>
 
-        <p className="text-center text-xs text-gray-600 mt-4 font-display">
-          <button onClick={() => router.push("/play")} className="hover:text-gray-400 transition-colors">
-            Continue as guest →
-          </button>
-        </p>
+            {message && (
+              <p
+                className={cn(
+                  "text-xs leading-relaxed px-4 py-3 rounded-[6px] bg-deep",
+                  message.type === "error" ? "text-wrong" : "text-correct"
+                )}
+              >
+                {message.text}
+              </p>
+            )}
+
+            <button type="submit" disabled={loading} className="btn-aurora w-full">
+              {loading
+                ? "Please wait…"
+                : mode === "login"
+                ? "Sign In"
+                : "Create Account"}
+            </button>
+          </form>
+        </div>
+
+        {/* Guest */}
+        <button
+          onClick={() => router.push("/play")}
+          className="btn-ghost self-center"
+        >
+          Continue as guest →
+        </button>
       </div>
     </main>
   );

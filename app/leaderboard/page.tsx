@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/isConfigured";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
 import { formatPrizeFull } from "@/lib/game/prizeLadder";
 import { PROFESSIONS, type Profession } from "@/lib/types";
 
@@ -21,96 +22,118 @@ export default async function LeaderboardPage() {
   let rows: Row[] = [];
   let currentUserId: string | null = null;
 
-  if (isSupabaseConfigured()) try {
-    const supabase = await createClient();
-    const [sessionsRes, userRes] = await Promise.all([
-      supabase
-        .from("game_sessions")
-        .select("id, user_id, mode, prize_reached, questions_answered, walked_away, completed, created_at")
-        .or("completed.eq.true,walked_away.eq.true")
-        .order("prize_reached", { ascending: false })
-        .limit(50),
-      supabase.auth.getUser(),
-    ]);
-    rows = (sessionsRes.data as Row[]) ?? [];
-    currentUserId = userRes.data.user?.id ?? null;
-  } catch {
-    // Supabase not configured — show empty state
+  if (isSupabaseConfigured()) {
+    try {
+      const supabase = await createClient();
+      const [sessionsRes, userRes] = await Promise.all([
+        supabase
+          .from("game_sessions")
+          .select(
+            "id, user_id, mode, prize_reached, questions_answered, walked_away, completed, created_at"
+          )
+          .or("completed.eq.true,walked_away.eq.true")
+          .order("prize_reached", { ascending: false })
+          .limit(50),
+        supabase.auth.getUser(),
+      ]);
+      rows = (sessionsRes.data as Row[]) ?? [];
+      currentUserId = userRes.data.user?.id ?? null;
+    } catch {
+      // Supabase unreachable — render empty state
+    }
   }
 
   return (
-    <main className="min-h-screen px-4 py-12 max-w-3xl mx-auto">
-      <div className="text-center mb-8">
-        <Link href="/" className="text-gray-500 hover:text-gray-300 text-sm font-display mb-4 block">
-          ← Home
-        </Link>
-        <h1 className="font-display font-black text-3xl gold-shimmer mb-1">
-          Leaderboard
-        </h1>
-        <p className="text-gray-500 text-xs font-display">Top 50 all-time scores</p>
-      </div>
+    <main className="abyss-glow min-h-screen px-5 py-20">
+      <div className="max-w-3xl mx-auto flex flex-col gap-12">
+        {/* Header */}
+        <div className="flex flex-col items-center gap-4 text-center animate-fade-in-up">
+          <Link href="/" className="btn-ghost">
+            ← Home
+          </Link>
+          <h1 className="t-heading-lg">Leaderboard</h1>
+          <p className="t-body">Top 50 scores of all time</p>
+        </div>
 
-      <div className="wwtbam-card overflow-hidden">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-yellow-900/30">
-              <th className="px-4 py-3 text-left text-xs font-display text-yellow-600 uppercase">#</th>
-              <th className="px-4 py-3 text-left text-xs font-display text-yellow-600 uppercase">Player</th>
-              <th className="px-4 py-3 text-left text-xs font-display text-yellow-600 uppercase">Mode</th>
-              <th className="px-4 py-3 text-right text-xs font-display text-yellow-600 uppercase">Prize</th>
-              <th className="px-4 py-3 text-right text-xs font-display text-yellow-600 uppercase hidden sm:table-cell">Qs</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="text-center py-12 text-gray-600 font-display">
-                  No scores yet — be the first!
-                </td>
-              </tr>
-            ) : (
-              rows.map((row, i) => {
-                const isMe = currentUserId === row.user_id;
-                const modeLabel = PROFESSIONS[row.mode as Profession]?.label ?? row.mode;
-                const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : null;
+        {/* Table */}
+        <div className="surface overflow-hidden animate-fade-in-up">
+          {rows.length === 0 ? (
+            <div className="py-24 flex flex-col items-center gap-4 text-center px-9">
+              <p className="t-caption">No Scores Yet</p>
+              <p className="t-body">Be the first to climb the ladder.</p>
+              <Link href="/play" className="btn-aurora mt-2">
+                Play Now
+              </Link>
+            </div>
+          ) : (
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-white/8">
+                  <th className="t-caption text-left px-6 py-5">#</th>
+                  <th className="t-caption text-left px-6 py-5">Player</th>
+                  <th className="t-caption text-left px-6 py-5 hidden sm:table-cell">
+                    Mode
+                  </th>
+                  <th className="t-caption text-right px-6 py-5">Prize</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((row, i) => {
+                  const isMe = currentUserId === row.user_id;
+                  const modeLabel =
+                    PROFESSIONS[row.mode as Profession]?.label ?? row.mode;
 
-                return (
-                  <tr
-                    key={row.id}
-                    className={`border-b border-blue-900/20 transition-colors ${
-                      isMe ? "bg-yellow-500/5 border-yellow-900/30" : "hover:bg-blue-900/20"
-                    }`}
-                  >
-                    <td className="px-4 py-3 font-display text-gray-500 text-xs">{medal ?? i + 1}</td>
-                    <td className="px-4 py-3 text-gray-300 text-xs">
-                      {isMe ? (
-                        <span className="text-yellow-400 font-bold">You</span>
-                      ) : (
-                        `Player ${row.user_id.slice(0, 6)}`
+                  return (
+                    <tr
+                      key={row.id}
+                      className={cn(
+                        "border-b border-white/5 last:border-0 transition-colors",
+                        isMe ? "bg-bio-from/15" : "hover:bg-white/[0.03]"
                       )}
-                    </td>
-                    <td className="px-4 py-3 text-gray-400 text-xs">{modeLabel}</td>
-                    <td className="px-4 py-3 text-right font-display font-bold text-yellow-400">
-                      {formatPrizeFull(row.prize_reached)}
-                    </td>
-                    <td className="px-4 py-3 text-right text-gray-500 text-xs hidden sm:table-cell">
-                      {row.questions_answered}
-                    </td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
-      </div>
+                    >
+                      <td className="px-6 py-5">
+                        <span
+                          className={cn(
+                            "text-xs font-medium tabular-nums",
+                            i < 3 ? "text-phosphor" : "text-slate"
+                          )}
+                        >
+                          {String(i + 1).padStart(2, "0")}
+                        </span>
+                      </td>
+                      <td className="px-6 py-5">
+                        <span
+                          className={cn(
+                            "text-sm",
+                            isMe ? "text-platinum font-medium" : "text-mist"
+                          )}
+                        >
+                          {isMe ? "You" : `Player ${row.user_id.slice(0, 6)}`}
+                        </span>
+                      </td>
+                      <td className="px-6 py-5 hidden sm:table-cell">
+                        <span className="text-sm text-silver">{modeLabel}</span>
+                      </td>
+                      <td className="px-6 py-5 text-right">
+                        <span className="t-stat text-base">
+                          {formatPrizeFull(row.prize_reached)}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </div>
 
-      <div className="text-center mt-6">
-        <Link
-          href="/play"
-          className="inline-block px-8 py-3 rounded-full bg-yellow-500 text-blue-950 font-display font-bold hover:bg-yellow-400 transition-colors"
-        >
-          Play Now
-        </Link>
+        {rows.length > 0 && (
+          <div className="flex justify-center animate-fade-in-up">
+            <Link href="/play" className="btn-aurora">
+              Play Now
+            </Link>
+          </div>
+        )}
       </div>
     </main>
   );

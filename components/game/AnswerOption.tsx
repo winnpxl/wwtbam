@@ -19,42 +19,41 @@ export function AnswerOption({
   disabled,
   onClick,
 }: AnswerOptionProps) {
-  if (state === "eliminated") {
-    return (
-      <div className="answer-option flex items-center gap-4 px-5 py-4 rounded-full opacity-20 cursor-not-allowed select-none">
-        <span className="shrink-0 w-8 h-8 rounded-full border border-current flex items-center justify-center text-sm font-bold font-display">
-          {LETTERS[index]}
-        </span>
-        <span className="text-sm line-through">{text}</span>
-      </div>
-    );
-  }
+  const isEliminated = state === "eliminated";
 
   return (
     <button
       onClick={onClick}
-      disabled={disabled || state !== "idle"}
+      disabled={disabled || state !== "idle" || isEliminated}
       className={cn(
-        "answer-option w-full flex items-center gap-4 px-5 py-4 rounded-full text-left transition-all",
-        "text-white font-medium cursor-pointer select-none",
-        state === "selected" && "selected",
-        state === "correct" && "correct",
-        state === "wrong" && "wrong"
+        "answer-option w-full flex items-center gap-4 px-5 py-4 text-left",
+        state === "selected" && "is-selected",
+        state === "correct" && "is-correct",
+        state === "wrong" && "is-wrong",
+        isEliminated && "is-eliminated"
       )}
     >
-      {/* Letter badge */}
       <span
         className={cn(
-          "shrink-0 w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-bold font-display",
-          state === "idle" && "border-blue-400 text-gold-500",
-          state === "selected" && "border-blue-300 text-white",
-          state === "correct" && "border-green-400 text-green-300",
-          state === "wrong" && "border-red-400 text-red-300"
+          "shrink-0 w-7 h-7 rounded-[6px] flex items-center justify-center text-xs font-medium tracking-widest",
+          state === "idle" && "bg-abyss/50 text-silver",
+          state === "selected" && "bg-selected/30 text-platinum",
+          state === "correct" && "bg-correct/30 text-platinum",
+          state === "wrong" && "bg-wrong/30 text-platinum",
+          isEliminated && "bg-abyss/50 text-slate"
         )}
       >
         {LETTERS[index]}
       </span>
-      <span className="text-sm md:text-base">{text}</span>
+
+      <span
+        className={cn(
+          "text-sm leading-snug",
+          isEliminated ? "text-slate line-through" : "text-mist"
+        )}
+      >
+        {text}
+      </span>
     </button>
   );
 }
