@@ -1,8 +1,14 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { isSupabaseConfigured } from "./isConfigured";
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
+
+  // Without credentials createServerClient throws, which would 500 every
+  // route this proxy matches. Pass the request through untouched instead —
+  // auth-gated pages handle the unauthenticated case themselves.
+  if (!isSupabaseConfigured()) return supabaseResponse;
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

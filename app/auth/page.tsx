@@ -3,6 +3,7 @@
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { isSupabaseConfigured } from "@/lib/supabase/isConfigured";
 import { cn } from "@/lib/utils";
 
 type Mode = "login" | "signup";
@@ -21,7 +22,7 @@ function AuthForm() {
     text: string;
   } | null>(null);
 
-  const supabase = createClient();
+  const configured = isSupabaseConfigured();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -29,6 +30,11 @@ function AuthForm() {
     setMessage(null);
 
     try {
+      // Created here rather than during render: without credentials this
+      // throws, which would take the whole page down instead of showing
+      // the notice below.
+      const supabase = createClient();
+
       if (mode === "signup") {
         const { error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
@@ -71,6 +77,16 @@ function AuthForm() {
 
         {/* Card */}
         <div className="surface p-9 flex flex-col gap-7">
+          {!configured && (
+            <div className="rounded-[6px] bg-deep px-4 py-3.5 flex flex-col gap-1.5">
+              <p className="t-caption text-phosphor">Accounts Unavailable</p>
+              <p className="text-xs leading-relaxed text-silver">
+                Sign-in isn&apos;t configured on this deployment. You can still
+                play as a guest — scores just won&apos;t be saved.
+              </p>
+            </div>
+          )}
+
           {/* Tabs */}
           <div className="flex gap-1 p-1 rounded-[6px] bg-deep">
             {(["login", "signup"] as Mode[]).map((m) => (
@@ -127,7 +143,11 @@ function AuthForm() {
               </p>
             )}
 
-            <button type="submit" disabled={loading} className="btn-aurora w-full">
+            <button
+              type="submit"
+              disabled={loading || !configured}
+              className="btn-aurora w-full"
+            >
               {loading
                 ? "Please wait…"
                 : mode === "login"
