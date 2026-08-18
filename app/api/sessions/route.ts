@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { isSupabaseConfigured } from "@/lib/supabase/isConfigured";
 import type { Lifeline, Profession } from "@/lib/types";
 
 export async function POST(request: NextRequest) {
+  // Scores simply aren't saved when there's no database — not an error
+  // worth interrupting play for.
+  if (!isSupabaseConfigured()) {
+    return NextResponse.json({ error: "Not configured" }, { status: 503 });
+  }
+
   const supabase = await createClient();
 
   const {
