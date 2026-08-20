@@ -1,36 +1,65 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# WWTBAM
 
-## Getting Started
+Who Wants to Be a Millionaire — play general knowledge or pick a profession.
+15 questions, 3 lifelines, up to $1,000,000.
 
-First, run the development server:
+Next.js 16 · TypeScript · Tailwind v4 · Supabase · Claude
+
+## Setup
+
+```bash
+npm install
+```
+
+Create `.env.local`:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=https://<ref>.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_...
+ANTHROPIC_API_KEY=sk-ant-...
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+```
+
+Never put an `sb_secret_…` value in a `NEXT_PUBLIC_` variable — those ship to the browser.
+
+Then, in the Supabase SQL Editor:
+
+1. Run `supabase/migrations/001_initial.sql` — creates tables and RLS policies
+2. Generate questions and run the result:
+
+```bash
+npx tsx scripts/generate-questions.ts   # writes supabase/seed.sql
+```
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Game rules
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Prize ladder runs $100 → $1,000,000 with safe havens at **$1,000** and **$64,000** — a wrong answer drops you to the last one cleared.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Lifelines, one use each: **50:50** (removes two wrong answers), **Ask the Audience** (simulated poll), **AI Hint** (Claude gives a cryptic clue).
 
-## Learn More
+Answers are verified server-side; `correct_idx` is never sent to the client before the reveal.
 
-To learn more about Next.js, take a look at the following resources:
+## Layout
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+app/            pages + API routes
+components/     game UI
+hooks/useGame   game state machine
+lib/            types, prize ladder, Supabase clients, Claude wrapper
+proxy.ts        auth protection for /profile and /play/game
+supabase/       schema migration
+scripts/        question generator
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Without Supabase credentials the app still runs — pages render and routes
+return 503 with a readable message instead of failing.
 
-## Deploy on Vercel
+## Deploy
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Push to `main`, import on Vercel, set the four env vars above (with
+`NEXT_PUBLIC_SITE_URL` as the production URL), and add that domain to
+Supabase → Authentication → URL Configuration.
