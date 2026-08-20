@@ -37,8 +37,10 @@ export async function updateSession(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
-  // Protected routes
-  const protectedRoutes = ["/profile", "/play/game"];
+  // Only pages showing personal data require an account. The game itself
+  // is playable as a guest — it falls back to a guest session and simply
+  // does not persist the score.
+  const protectedRoutes = ["/profile"];
   const isProtected = protectedRoutes.some((r) => pathname.startsWith(r));
 
   if (isProtected && !user) {
