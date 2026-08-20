@@ -3,7 +3,11 @@
     "allow": [
       "Bash(npx create-next-app@latest . --typescript --tailwind --app --no-src-dir --import-alias \"@/*\" --no-eslint --yes)",
       "Bash(npm install *)",
-      "mcp__Claude_Preview__preview_start"
+      "mcp__Claude_Preview__preview_start",
+      "WebFetch(domain:styles.refero.design)",
+      "Bash(git fetch *)",
+      "Bash(npx tsc *)",
+      "Bash(npm run *)"
     ]
   }
 }

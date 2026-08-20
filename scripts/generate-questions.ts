@@ -127,8 +127,20 @@ function escapeSql(str: string): string {
 async function main() {
   console.log("🎯 WWTBAM Question Generator\n");
 
+  // Fail before burning time on 120 doomed API calls.
+  const key = process.env.ANTHROPIC_API_KEY;
+  if (!key || !key.startsWith("sk-ant-")) {
+    console.error(
+      "\n✗ ANTHROPIC_API_KEY is missing or malformed.\n" +
+        "  Expected a key starting with 'sk-ant-' in .env.local.\n" +
+        "  Get one at https://console.anthropic.com/settings/api-keys\n"
+    );
+    process.exit(1);
+  }
+
   const allQuestions: GeneratedQuestion[] = [];
   let total = 0;
+  let failures = 0;
 
   for (const category of CATEGORIES) {
     console.log(`\n📚 Generating for category: ${category}`);
@@ -142,12 +154,33 @@ async function main() {
         // Small delay to avoid rate limiting
         await new Promise((r) => setTimeout(r, 500));
       } catch (err) {
-        console.error(`✗ Error: ${err}`);
+        failures++;
+        console.error(`✗ ${err instanceof Error ? err.message : err}`);
+        // Bail early rather than grinding through every tier with a bad
+        // key or no credit, then writing a useless file at the end.
+        if (failures >= 3 && total === 0) {
+          console.error(
+            "\n✗ First 3 requests all failed and nothing was generated.\n" +
+              "  Check the API key is valid and the account has credit.\n"
+          );
+          process.exit(1);
+        }
       }
     }
   }
 
+  // An empty INSERT is not valid SQL — never write one.
+  if (total === 0) {
+    console.error(
+      "\n✗ No questions were generated, so no seed file was written.\n"
+    );
+    process.exit(1);
+  }
+
   console.log(`\n✅ Generated ${total} questions total`);
+  if (failures > 0) {
+    console.log(`⚠ ${failures} tier(s) failed and were skipped.`);
+  }
   console.log("📝 Writing seed.sql...");
 
   // Build SQL
