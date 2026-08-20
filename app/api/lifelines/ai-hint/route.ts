@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { isSupabaseConfigured } from "@/lib/supabase/isConfigured";
 import { getAiHint } from "@/lib/ai";
 
 export async function POST(request: NextRequest) {
+  if (!isSupabaseConfigured()) {
+    return NextResponse.json({ error: "Not configured" }, { status: 503 });
+  }
+
   const { questionId } = await request.json();
 
   if (!questionId) {

@@ -59,19 +59,29 @@ function GameScreen() {
           }),
         ]);
 
+        // Surface the server's reason rather than a generic failure — a
+        // missing database and an empty one need different fixes.
+        if (!questionsRes.ok) {
+          const body = await questionsRes.json().catch(() => null);
+          setError(body?.error ?? `Couldn't reach the question service (${questionsRes.status}).`);
+          return;
+        }
+
         const { questions } = await questionsRes.json();
         // Session might fail if not logged in — that's OK
         const sessionData = sessionRes.ok ? await sessionRes.json() : { id: "guest" };
 
         if (!questions || questions.length < 15) {
-          setError("Not enough questions available. Please try again.");
+          setError(
+            "There aren't enough questions in the database for this mode yet."
+          );
           return;
         }
 
         // Store correct answers for reveal (fetched server-side via lifelines)
         startGame(questions as ClientQuestion[], sessionData.id);
       } catch {
-        setError("Failed to load game. Please try again.");
+        setError("Couldn't load the game. Check your connection and try again.");
       } finally {
         setLoading(false);
       }
